@@ -1,5 +1,5 @@
 {
-  "name": "DeepSeek4Mac",
+  "name": "deepseek4mac",
   "version": "1.0.0",
   "description": "DeepSeek Ai For Mac",
   "main": "src/main.js",
@@ -10,6 +10,10 @@
   "author": "OvidiuNicolaescu",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^34.0.2"
+    "electron": "^34.0.2",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "electron-store": "^10.0.1"
   }
 }

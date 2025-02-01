@@ -1,8 +1,12 @@
-const { app, BrowserWindow, screen, globalShortcut, BrowserView } = require('electron')
-const path = require('path')
+const { app, BrowserWindow, screen, Menu, globalShortcut, BrowserView } = require('electron')
+const path = require('path');
 
 let mainWindow
 let loadingWindow
+let view
+
+app.setName('DeepSeek4Mac');
+
 
 // display loading window before site is loaded
 function createLoadingWindow() {
@@ -41,19 +45,21 @@ function createMainWindow() {
         frame: false,
         resizable: true,
         alwaysOnTop: true,
+        transparent: true,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true
         }
     })
 
-    mainWindow.loadFile(path.join(__dirname, 'pages/overlay.html'))
-    
-    const view = new BrowserView({
+    mainWindow.setTitle('DeepSeek4Mac');
+    view = new BrowserView({
         webPreferences: {
             nodeIntegration: true,
         }
     });
+
+    mainWindow.loadFile(path.join(__dirname, 'pages/overlay.html'))
 
     mainWindow.webContents.on('did-finish-load', () => {
         if (loadingWindow) {
@@ -67,8 +73,9 @@ function createMainWindow() {
         mainWindow.setBrowserView(view);
         view.setBounds({ x: 0, y: 0, width, height });
         view.webContents.loadURL("https://chat.deepseek.com");
-
         mainWindow.show()
+
+        createMenu();
     })
 
     mainWindow.on('closed', () => { mainWindow = null })
@@ -82,6 +89,73 @@ function createMainWindow() {
     })
 }
 
+function createMenu() {
+    const template = [
+        {
+            label: 'DeepSeek4Mac',
+            submenu: [
+                {
+                    label: 'Refresh',
+                    click: () => {
+                        view.webContents.reload();
+                    }
+                },
+                {
+                    label: 'Force Reload',
+                    click: () => {
+                        view.webContents.reloadIgnoringCache();
+                    }
+                }
+            ]
+        },
+        {
+            label: 'Select Model', 
+            submenu: [
+                {
+                    label: 'DeepSeek',
+                    click: () => {
+                        view.webContents.loadURL("https://chat.deepseek.com");
+                    }
+                },
+                {
+                    label: 'ChatGPT',
+                    click: () => {
+                        view.webContents.loadURL("https://chat.openai.com");
+                        view.webContents.executeJavaScript(`
+                            document.addEventListener('keydown', (e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const svgElement = document.querySelector('svg.icon-2xl');
+                                    
+                                    if (svgElement) {
+                                        const clickEvent = new MouseEvent('click', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window
+                                        });
+                                        svgElement.dispatchEvent(clickEvent);
+                                    }
+                                }
+                            });
+                        `);
+                    }
+                }
+            ]
+        }, 
+        {
+            label: 'Edit Options',
+            submenu: [
+                { role: 'Copy' },
+                { role: 'Paste' },
+                { role: 'Cut' },
+                { role: 'Select All' }
+            ]
+        }
+    ];
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+}
 app.whenReady().then(() => {
     createLoadingWindow()
     createMainWindow()
