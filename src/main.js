@@ -1,9 +1,10 @@
-const { app, BrowserWindow, screen, globalShortcut } = require('electron')
+const { app, BrowserWindow, screen, globalShortcut, BrowserView } = require('electron')
 const path = require('path')
 
 let mainWindow
 let loadingWindow
 
+// display loading window before site is loaded
 function createLoadingWindow() {
     loadingWindow = new BrowserWindow({
         width: 150,
@@ -12,7 +13,7 @@ function createLoadingWindow() {
         transparent: true,
         resizable: false,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
         }
     })
 
@@ -27,6 +28,7 @@ function createLoadingWindow() {
     })
 }
 
+// create and display app after site loaded
 function createMainWindow() {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
 
@@ -37,26 +39,47 @@ function createMainWindow() {
         y: height - 700,
         show: false,
         frame: false,
-        resizable: false,
+        resizable: true,
+        alwaysOnTop: true,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: true
         }
     })
 
-    mainWindow.loadURL('http://chat.deepseek.com')
+    mainWindow.loadFile(path.join(__dirname, 'pages/overlay.html'))
+    
+    const view = new BrowserView({
+        webPreferences: {
+            nodeIntegration: true,
+        }
+    });
+
     mainWindow.webContents.on('did-finish-load', () => {
         if (loadingWindow) {
             loadingWindow.close()
         }
+
+        const bounds = mainWindow.getBounds();
+        const width = bounds.width;
+        const height = bounds.height;
+
+        mainWindow.setBrowserView(view);
+        view.setBounds({ x: 0, y: 0, width, height });
+        view.webContents.loadURL("https://chat.deepseek.com");
+
         mainWindow.show()
     })
 
     mainWindow.on('closed', () => { mainWindow = null })
     
-    mainWindow.webContents.executeJavaScript(`
-        const { ipcRenderer } = require('electron');
-        document.body.style.webkitAppRegion = 'drag';
-    `)
+    mainWindow.on('resize', () => {
+        const bounds = mainWindow.getBounds();
+        const width = bounds.width;
+        const height = bounds.height;
+    
+        view.setBounds({ x: 0, y: 0, width, height });
+    })
 }
 
 app.whenReady().then(() => {
