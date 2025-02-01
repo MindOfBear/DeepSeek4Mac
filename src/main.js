@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen } = require('electron')
+const { app, BrowserWindow, screen, globalShortcut } = require('electron')
 const path = require('path')
 
 let mainWindow
@@ -18,7 +18,13 @@ function createLoadingWindow() {
 
     loadingWindow.loadFile(path.join(__dirname, 'pages/index.html'))
     loadingWindow.on('closed', () => { loadingWindow = null })
-
+    globalShortcut.register('Control+Space', () => {
+        if (mainWindow.isVisible()) {
+            mainWindow.hide()
+        } else {
+            mainWindow.show()
+        }
+    })
 }
 
 function createMainWindow() {
