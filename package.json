@@ -1,10 +1,11 @@
 {
   "name": "deepseek4mac",
   "version": "1.0.0",
-  "description": "DeepSeek Ai For Mac",
+  "description": "DeepSeek and GPT For Mac",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "build": "electron-builder --mac",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "OvidiuNicolaescu",
@@ -15,5 +16,18 @@
   },
   "dependencies": {
     "electron-store": "^10.0.1"
+  },
+  "build": {
+    "appId": "com.ovidiuD4M.mac",
+    "productName": "DeepSeek4Mac",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg",
+      "icon": "build/icon.icns"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ]
   }
 }
